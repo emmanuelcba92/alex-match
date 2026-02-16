@@ -4,6 +4,8 @@ export const TOPICS = {
     PROPERTIES: 'properties',
     TRIANGLES: 'triangles',
     FRACTIONS: 'fractions',
+    DECIMALS: 'decimals',
+    COMBINED: 'combined',
 };
 
 import React from 'react';
@@ -17,6 +19,15 @@ const getRange = (digits) => {
     return { min, max };
 };
 
+export const getLevel = (totalCorrect) => {
+    if (totalCorrect < 5) return 'Aprendiz de Mate 🐣';
+    if (totalCorrect < 15) return 'Explorador de Números 🔍';
+    if (totalCorrect < 30) return 'Mago de las Cuentas 🧙‍♂️';
+    if (totalCorrect < 50) return 'Capitán de las Fracciones ⚓';
+    if (totalCorrect < 100) return 'Genio de las Mates 🚀';
+    return 'Maestro Supremo de los Números 👑';
+};
+
 export const generateProblem = (topic, config) => {
     switch (topic) {
         case TOPICS.MULTIPLICATION: {
@@ -27,11 +38,19 @@ export const generateProblem = (topic, config) => {
 
             const num1 = getRandomInt(range1.min, range1.max);
             const num2 = getRandomInt(range2.min, range2.max);
+
+            // Money Context 20% of the time
+            const isMoney = Math.random() > 0.8;
+            const items = ['alfajores', 'chupetines', 'figus', 'turrones', 'caramelos'];
+            const item = items[getRandomInt(0, items.length - 1)];
+
             return {
                 type: topic,
-                question: `${num1} x ${num2}`,
+                question: isMoney
+                    ? `Si comprás ${num2} ${item} a $${num1} cada uno... ¿Cuánto pagás en total?`
+                    : `${num1} x ${num2}`,
                 answer: num1 * num2,
-                details: { num1, num2 }
+                details: { num1, num2, isMoney }
             };
         }
         case TOPICS.DIVISION: {
@@ -40,7 +59,6 @@ export const generateProblem = (topic, config) => {
 
             const rangeDivisor = getRange(d2);
             const divisor = getRandomInt(rangeDivisor.min, rangeDivisor.max);
-
             const rangeDividend = getRange(d1);
 
             let dividend = getRandomInt(rangeDividend.min, rangeDividend.max);
@@ -48,14 +66,47 @@ export const generateProblem = (topic, config) => {
             dividend = dividend - remainder;
 
             if (dividend < rangeDividend.min) dividend += divisor;
-
             const quotient = dividend / divisor;
+
+            // Money Context 20% of the time
+            const isMoney = Math.random() > 0.8;
 
             return {
                 type: topic,
-                question: `${dividend} ÷ ${divisor}`,
+                question: isMoney
+                    ? `Tenés $${dividend} y querés repartirlos entre ${divisor} amigos... ¿Cuánto le toca a cada uno?`
+                    : `${dividend} ÷ ${divisor}`,
                 answer: quotient,
-                details: { dividend, divisor }
+                details: { dividend, divisor, isMoney }
+            };
+        }
+        case TOPICS.DECIMALS: {
+            const d1 = (getRandomInt(10, 999) / 10).toFixed(1);
+            const d2 = (getRandomInt(10, 999) / 10).toFixed(1);
+            const isSum = Math.random() > 0.5;
+
+            return {
+                type: topic,
+                question: `${d1} ${isSum ? '+' : '-'} ${d2}`,
+                answer: isSum ? parseFloat((parseFloat(d1) + parseFloat(d2)).toFixed(1)) : parseFloat(Math.abs(parseFloat(d1) - parseFloat(d2)).toFixed(1)),
+                details: { d1, d2, isSum }
+            };
+        }
+        case TOPICS.COMBINED: {
+            const a = getRandomInt(2, 10);
+            const b = getRandomInt(2, 10);
+            const c = getRandomInt(2, 10);
+            const types = [
+                { q: `(${a} + ${b}) x ${c}`, a: (a + b) * c },
+                { q: `${a} x ${b} + ${c}`, a: (a * b) + c },
+                { q: `${a} + ${b} x ${c}`, a: a + (b * c) }
+            ];
+            const selected = types[getRandomInt(0, 2)];
+            return {
+                type: topic,
+                question: selected.q,
+                answer: selected.a,
+                hint: "¡Ojo! Acordate de separar en términos o usar los paréntesis primero."
             };
         }
         case TOPICS.PROPERTIES: {
@@ -87,48 +138,35 @@ export const generateProblem = (topic, config) => {
                 sides = [s, s, s];
             } else if (type === 'Isósceles') {
                 const base = getRandomInt(4, 12);
-                const equalSide = getRandomInt(base + 1, base * 2); // Ensure triangle inequality
+                const equalSide = getRandomInt(base + 1, base * 2);
                 sides = [equalSide, equalSide, base];
             } else {
-                // Scalene
                 let a, b, c;
                 do {
                     a = getRandomInt(5, 15);
                     b = getRandomInt(5, 15);
                     c = getRandomInt(5, 15);
-                } while (a === b || b === c || a === c || a + b <= c || a + c <= b || b + c <= a); // Ensure distinct and valid
+                } while (a === b || b === c || a === c || a + b <= c || a + c <= b || b + c <= a);
                 sides = [a, b, c];
             }
 
-            // Shuffle sides for display? Or keep them sorted? Usually diagrams show relative lengths.
-            // Let's create a visual representation (SVG)
             const maxSide = Math.max(...sides);
-            const scale = 150 / maxSide; // Scale to fit in 200x200 box
-            // Coordinates: Base on x-axis.
-            // A=(0,0), B=(side3, 0). C found by intersection of circle(A, s1) and circle(B, s2).
-            // Let side3 be the base. s1 = sides[0], s2 = sides[1], s3 = sides[2]
-
-            // Simple visualization: Just numbers and a generic triangle or specific shape?
-            // Let's try to draw it roughly.
-            // Cosine rule to find coordinates of C (x, y)
-            // x = (s3^2 + s1^2 - s2^2) / (2 * s3)
-            // y = sqrt(s1^2 - x^2)
+            const scale = 150 / maxSide;
 
             const s1 = sides[0];
             const s2 = sides[1];
-            const s3 = sides[2]; // Base
+            const s3 = sides[2];
 
             const cx = (s3 * s3 + s1 * s1 - s2 * s2) / (2 * s3);
             const cy = Math.sqrt(Math.abs(s1 * s1 - cx * cx));
 
-            const p1 = { x: 20, y: 180 }; // Bottom-left
-            const p2 = { x: 20 + s3 * scale, y: 180 }; // Bottom-right
-            const p3 = { x: 20 + cx * scale, y: 180 - cy * scale }; // Top
+            const p1 = { x: 20, y: 180 };
+            const p2 = { x: 20 + s3 * scale, y: 180 };
+            const p3 = { x: 20 + cx * scale, y: 180 - cy * scale };
 
             const svgContent = (
                 <svg width="250" height="200" viewBox="0 0 250 200" className="mx-auto my-4 overflow-visible">
                     <polygon points={`${p1.x},${p1.y} ${p2.x},${p2.y} ${p3.x},${p3.y}`} fill="#e0f2fe" stroke="#3b82f6" strokeWidth="4" strokeLinejoin="round" />
-                    {/* Labels */}
                     <text x={(p1.x + p3.x) / 2 - 15} y={(p1.y + p3.y) / 2} fill="#1e40af" fontWeight="bold">{s1}</text>
                     <text x={(p2.x + p3.x) / 2 + 5} y={(p2.y + p3.y) / 2} fill="#1e40af" fontWeight="bold">{s2}</text>
                     <text x={(p1.x + p2.x) / 2} y={p1.y + 20} fill="#1e40af" fontWeight="bold" textAnchor="middle">{s3}</text>
@@ -208,6 +246,24 @@ export const getAlexTip = (topic) => {
                     </ol>
                 </div>
             );
+        case TOPICS.DECIMALS:
+            return (
+                <div className="text-left text-sm space-y-2">
+                    <p><strong>Truco para decimales:</strong></p>
+                    <p>¡Alineá siempre las comas! Es como sumar números normales, pero la coma manda el lugar.</p>
+                </div>
+            );
+        case TOPICS.COMBINED:
+            return (
+                <div className="text-left text-sm space-y-2">
+                    <p><strong>Orden de las cuentas:</strong></p>
+                    <ol className="list-decimal list-inside space-y-1">
+                        <li>Primero lo que está adentro del paréntesis.</li>
+                        <li>Después multiplicaciones y divisiones.</li>
+                        <li>Al final, sumas y restas. <strong>"Separar en términos"</strong> es la clave.</li>
+                    </ol>
+                </div>
+            );
         case TOPICS.PROPERTIES:
             return (
                 <div className="text-left text-sm space-y-2">
@@ -242,16 +298,29 @@ export const getAlexTip = (topic) => {
 export const getAlexHint = (problem, wrongAnswer) => {
     if (!problem) return '¡Dale de nuevo, che!';
 
-    const successPhrases = ["¡Vaaaaamoooo! ¡Sos un crack!", "¡Re bien! ¡La tenés clara!", "¡De diez, sabelo!", "¡Impresionante, che!"];
     const retryPhrases = ["¡Casi, casi!", "¡Por un pelito!", "¡Epa! Revisá ese paso.", "¡Che, fijate bien!"];
 
     if (problem.type === TOPICS.MULTIPLICATION) {
         const { num1, num2 } = problem.details;
         const unit = num2 % 10;
+        const tens = Math.floor(num2 / 10);
+
+        // Breakdown breakdown for Argentinian education style
+        const step1 = num1 * unit;
+        const step2 = num1 * tens * 10;
+
         if (String(wrongAnswer).slice(-1) !== String(problem.answer).slice(-1)) {
             return `Che, fijate la cuenta de las unidades (${num1} x ${unit}). ¡Ahí hubo un pifie!`;
         }
-        return `¡Casi! Capaz te olvidaste de sumar lo que "te llevabas" o de dejar el espacio en la segunda fila.`;
+
+        return (
+            <div className="space-y-1">
+                <p>¿Te trabaste? Mirá el desglose:</p>
+                <p className="text-xs">• {num1} x {unit} = {step1}</p>
+                <p className="text-xs">• {num1} x {tens}0 = {step2}</p>
+                <p className="text-xs">¡Sumalos y listo!</p>
+            </div>
+        );
     }
 
     if (problem.type === TOPICS.DIVISION) {
@@ -270,6 +339,10 @@ export const getAlexHint = (problem, wrongAnswer) => {
     }
 
     if (problem.type === TOPICS.FRACTIONS) {
+        return problem.hint;
+    }
+
+    if (problem.type === TOPICS.COMBINED) {
         return problem.hint;
     }
 

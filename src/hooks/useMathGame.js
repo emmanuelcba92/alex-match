@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { generateProblem, getAlexTip, getAlexHint, TOPICS } from '../utils/mathEngine';
+import { generateProblem, getAlexTip, getAlexHint, getLevel, TOPICS } from '../utils/mathEngine';
 
 export const useMathGame = () => {
     const [topic, setTopic] = useState(TOPICS.MULTIPLICATION);
@@ -9,6 +9,7 @@ export const useMathGame = () => {
     const [showConfetti, setShowConfetti] = useState(false);
     const [alexEmotion, setAlexEmotion] = useState('neutral');
     const [streak, setStreak] = useState(0);
+    const [totalCorrect, setTotalCorrect] = useState(0);
 
     // New Config State
     const [config, setConfig] = useState({
@@ -40,7 +41,7 @@ export const useMathGame = () => {
         if (problem.isMultipleChoice) {
             isCorrect = input === problem.answer;
         } else {
-            isCorrect = parseInt(input, 10) === problem.answer;
+            isCorrect = parseFloat(input) === problem.answer; // Changed to parseFloat for decimals
         }
 
         if (isCorrect) {
@@ -48,6 +49,7 @@ export const useMathGame = () => {
             const phrase = successPhrases[Math.floor(Math.random() * successPhrases.length)];
 
             setStreak(prev => prev + 1);
+            setTotalCorrect(prev => prev + 1);
             setFeedback({ type: 'success', message: `${phrase} (Racha: ${streak + 1})` });
             setShowConfetti(true);
             setAlexEmotion('happy');
@@ -56,7 +58,7 @@ export const useMathGame = () => {
             }, 2000);
         } else {
             setStreak(0);
-            const hint = getAlexHint(problem, parseInt(input, 10));
+            const hint = getAlexHint(problem, parseFloat(input));
             setFeedback({ type: 'error', message: hint });
             setAlexEmotion('sad');
             setShowConfetti(false);
@@ -83,6 +85,7 @@ export const useMathGame = () => {
         askTip,
         config,
         updateConfig,
-        streak
+        streak,
+        level: getLevel(totalCorrect)
     };
 };

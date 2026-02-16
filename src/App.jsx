@@ -20,7 +20,9 @@ function App() {
     handleCheck,
     askTip,
     config,
-    updateConfig
+    updateConfig,
+    streak,
+    level
   } = useMathGame();
 
   return (
@@ -33,13 +35,18 @@ function App() {
             <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">
               Alex Profe
             </h1>
-            <div className="flex items-center justify-between">
-              <p className="text-sm text-slate-500">Compañero Mate</p>
-              {streak > 0 && (
-                <span className="bg-orange-100 text-orange-600 text-xs font-bold px-2 py-1 rounded-full animate-bounce">
-                  🔥 Racha: {streak}
-                </span>
-              )}
+            <div className="flex flex-col gap-1">
+              <div className="flex items-center justify-between">
+                <p className="text-sm text-slate-500">Compañero Mate</p>
+                {streak > 0 && (
+                  <span className="bg-orange-100 text-orange-600 text-xs font-bold px-2 py-1 rounded-full animate-bounce">
+                    🔥 Racha: {streak}
+                  </span>
+                )}
+              </div>
+              <div className="bg-blue-50 text-blue-700 text-[10px] uppercase font-black tracking-widest px-2 py-1 rounded-md border border-blue-100 w-fit">
+                {level}
+              </div>
             </div>
           </header>
           <TopicSelector
