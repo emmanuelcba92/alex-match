@@ -1,11 +1,14 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useMathGame } from './hooks/useMathGame';
 import GlassCard from './components/GlassCard';
 import AlexAvatar from './components/AlexAvatar';
 import TopicSelector from './components/TopicSelector';
 import MathProblem from './components/MathProblem';
+import ScratchPad from './components/ScratchPad';
+import { Edit3 } from 'lucide-react';
 
 function App() {
+  const [showScratchPad, setShowScratchPad] = useState(false);
   const {
     topic,
     setTopic,
@@ -28,9 +31,16 @@ function App() {
         <aside className="md:sticky md:top-8 animate-fade-in-left">
           <header className="mb-8">
             <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">
-              Profesor Alex
+              Alex Profe
             </h1>
-            <p className="text-sm text-slate-500">Tu compañero de mates</p>
+            <div className="flex items-center justify-between">
+              <p className="text-sm text-slate-500">Compañero Mate</p>
+              {streak > 0 && (
+                <span className="bg-orange-100 text-orange-600 text-xs font-bold px-2 py-1 rounded-full animate-bounce">
+                  🔥 Racha: {streak}
+                </span>
+              )}
+            </div>
           </header>
           <TopicSelector
             currentTopic={topic}
@@ -59,6 +69,20 @@ function App() {
           </div>
         </main>
       </div>
+
+      {/* Floating ScratchPad Button */}
+      <button
+        onClick={() => setShowScratchPad(true)}
+        className="fixed bottom-6 right-6 w-16 h-16 bg-blue-600 text-white rounded-full shadow-2xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all z-[60] border-4 border-white"
+        title="Abrir Pizarra"
+      >
+        <Edit3 size={32} />
+      </button>
+
+      {/* ScratchPad Instance */}
+      {showScratchPad && (
+        <ScratchPad onClose={() => setShowScratchPad(false)} />
+      )}
 
       {/* Simple Confetti Effect Overlay */}
       {showConfetti && (

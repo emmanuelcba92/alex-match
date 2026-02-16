@@ -8,6 +8,7 @@ export const useMathGame = () => {
     const [feedback, setFeedback] = useState({ type: 'info', message: '¡Hola! Soy Alex. ¡Vamos a practicar!' });
     const [showConfetti, setShowConfetti] = useState(false);
     const [alexEmotion, setAlexEmotion] = useState('neutral');
+    const [streak, setStreak] = useState(0);
 
     // New Config State
     const [config, setConfig] = useState({
@@ -43,14 +44,18 @@ export const useMathGame = () => {
         }
 
         if (isCorrect) {
-            setFeedback({ type: 'success', message: '¡Excelente! 🎉' });
+            const successPhrases = ["¡Vaaaaamoooo! ¡Sos un crack!", "¡Re bien! ¡La tenés clara!", "¡De diez, sabelo!", "¡Impresionante, che!"];
+            const phrase = successPhrases[Math.floor(Math.random() * successPhrases.length)];
+
+            setStreak(prev => prev + 1);
+            setFeedback({ type: 'success', message: `${phrase} (Racha: ${streak + 1})` });
             setShowConfetti(true);
             setAlexEmotion('happy');
-            // Wait before new problem
             setTimeout(() => {
                 generateNewProblem(topic, config);
             }, 2000);
         } else {
+            setStreak(0);
             const hint = getAlexHint(problem, parseInt(input, 10));
             setFeedback({ type: 'error', message: hint });
             setAlexEmotion('sad');
@@ -77,6 +82,7 @@ export const useMathGame = () => {
         newProblem: () => generateNewProblem(topic, config),
         askTip,
         config,
-        updateConfig
+        updateConfig,
+        streak
     };
 };

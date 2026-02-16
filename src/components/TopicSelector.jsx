@@ -1,6 +1,6 @@
 import React from 'react';
 import { TOPICS } from '../utils/mathEngine';
-import { Calculator, Divide, BookOpen, Triangle } from 'lucide-react';
+import { Calculator, Divide, BookOpen, Triangle, Percent } from 'lucide-react';
 
 const TopicSelector = ({ currentTopic, onSelectTopic, config, onUpdateConfig }) => {
     const topics = [
@@ -8,6 +8,7 @@ const TopicSelector = ({ currentTopic, onSelectTopic, config, onUpdateConfig }) 
         { id: TOPICS.DIVISION, label: 'División', icon: Divide },
         { id: TOPICS.PROPERTIES, label: 'Propiedades', icon: BookOpen },
         { id: TOPICS.TRIANGLES, label: 'Triángulos', icon: Triangle },
+        { id: TOPICS.FRACTIONS, label: 'Fracciones', icon: Percent },
     ];
 
     const handleConfigChange = (type, key, value) => {

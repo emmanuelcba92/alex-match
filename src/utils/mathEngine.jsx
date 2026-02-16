@@ -3,6 +3,7 @@ export const TOPICS = {
     DIVISION: 'division',
     PROPERTIES: 'properties',
     TRIANGLES: 'triangles',
+    FRACTIONS: 'fractions',
 };
 
 import React from 'react';
@@ -103,7 +104,7 @@ export const generateProblem = (topic, config) => {
             // Let's create a visual representation (SVG)
             const maxSide = Math.max(...sides);
             const scale = 150 / maxSide; // Scale to fit in 200x200 box
-            // Coordinates: Base on x-axis. 
+            // Coordinates: Base on x-axis.
             // A=(0,0), B=(side3, 0). C found by intersection of circle(A, s1) and circle(B, s2).
             // Let side3 be the base. s1 = sides[0], s2 = sides[1], s3 = sides[2]
 
@@ -138,13 +139,44 @@ export const generateProblem = (topic, config) => {
                 type: topic,
                 question: (
                     <div>
-                        <div className="text-xl mb-2">¿Qué tipo de triángulo es según sus lados?</div>
+                        <div className="text-xl mb-2 fuente-argentina">¿Qué tipo de triángulo es según sus lados?</div>
                         {svgContent}
                     </div>
                 ),
                 answer: type,
                 options: types.sort(() => Math.random() - 0.5),
                 isMultipleChoice: true
+            };
+        }
+        case TOPICS.FRACTIONS: {
+            const den = getRandomInt(2, 10);
+            const n1 = getRandomInt(1, den - 1);
+            const n2 = getRandomInt(1, den - 1);
+
+            const isSum = Math.random() > 0.5;
+            const op = isSum ? '+' : '-';
+            let ansNum = isSum ? n1 + n2 : Math.abs(n1 - n2);
+            if (ansNum === 0) ansNum = 1;
+
+            return {
+                type: topic,
+                question: (
+                    <div className="flex items-center justify-center gap-4 text-4xl font-bold py-6">
+                        <div className="flex flex-col items-center">
+                            <span className="border-b-4 border-slate-700 w-full text-center">{n1 === n2 && !isSum ? n1 + 1 : Math.max(n1, n2)}</span>
+                            <span>{den}</span>
+                        </div>
+                        <span className="text-5xl">{op}</span>
+                        <div className="flex flex-col items-center">
+                            <span className="border-b-4 border-slate-700 w-full text-center">{n1 === n2 && !isSum ? 1 : Math.min(n1, n2)}</span>
+                            <span>{den}</span>
+                        </div>
+                        <span>=</span>
+                    </div>
+                ),
+                answer: isSum ? (Math.max(n1, n2) + Math.min(n1, n2)) : (Math.max(n1, n2) - Math.min(n1, n2)),
+                details: { den },
+                hint: `Como tienen el mismo denominador (${den}), ¡solo tenés que ${isSum ? 'sumar' : 'restar'} los números de arriba!`
             };
         }
         default:
@@ -157,71 +189,78 @@ export const getAlexTip = (topic) => {
         case TOPICS.MULTIPLICATION:
             return (
                 <div className="text-left text-sm space-y-2">
-                    <p><strong>Pasos sencillos:</strong></p>
+                    <p className="font-bold text-blue-600">¡Che, escuchá este truco!</p>
                     <ol className="list-decimal list-inside space-y-1">
-                        <li>Multiplicá el número de abajo (unidad) por el de arriba.</li>
-                        <li>Hacé lo mismo con la decena (el segundo número), ¡pero dejá un espacio o poné un cero a la derecha!</li>
-                        <li>Sumá los dos resultados.</li>
+                        <li>Multiplicá la unidad (el último numerito de abajo) por todo lo de arriba.</li>
+                        <li>Cuando pases a la decena, <strong>¡no te olvides de dejar el lugar!</strong> Poné un 0 o un guión.</li>
+                        <li>Sumá todo al final. ¡Re fácil!</li>
                     </ol>
                 </div>
             );
         case TOPICS.DIVISION:
             return (
                 <div className="text-left text-sm space-y-2">
-                    <p><strong>¿Cómo dividir?</strong></p>
+                    <p className="font-bold text-blue-600">Dividir es como repartir caramelos:</p>
                     <ol className="list-decimal list-inside space-y-1">
-                        <li>Tomá los primeros números del dividendo (izquierda) que sean mayores al divisor.</li>
-                        <li>Buscá un número que multiplicado por el divisor se acerque sin pasarse.</li>
-                        <li>Restá y bajá el siguiente número. ¡Repetí hasta terminar!</li>
+                        <li>Agarrá los primeros números de la izquierda que sean más grandes que el divisor.</li>
+                        <li>¿Cuántas veces entra el divisor ahí? Si te sobran, bajá el número que sigue al lado.</li>
+                        <li>¡Seguí así hasta que no queden más para bajar!</li>
                     </ol>
                 </div>
             );
         case TOPICS.PROPERTIES:
             return (
                 <div className="text-left text-sm space-y-2">
-                    <p><strong>Conmutativa:</strong> "El orden de los factores no altera el producto". <br /><span className="text-xs text-slate-500">Ej: 5x3 es igual a 3x5.</span></p>
-                    <p><strong>Asociativa:</strong> "No importa cómo agrupes las multiplicaciones". <br /><span className="text-xs text-slate-500">Ej: (2x3)x4 es igual a 2x(3x4).</span></p>
-                    <p><strong>Distributiva:</strong> "El número de afuera se reparte con los de adentro". <br /><span className="text-xs text-slate-500">Ej: 2x(3+4) es igual a hacer 2x3 y sumarle 2x4.</span></p>
+                    <p><strong>Conmutativa:</strong> "Cambiamos de lugar". <span className="text-blue-600 font-bold">5x3 = 3x5</span>. ¡El orden no importa, viste!</p>
+                    <p><strong>Asociativa:</strong> "Agrupamos distinto". Los paréntesis no cambian nada si es todo multiplicación.</p>
+                    <p><strong>Distributiva:</strong> El de afuera se "reparte" multiplicando a los que están adentro sumando.</p>
                 </div>
             );
         case TOPICS.TRIANGLES:
             return (
                 <div className="text-left text-sm space-y-2">
-                    <p><strong>Tipos de Triángulos:</strong></p>
+                    <p><strong>Acordate de estos nombres:</strong></p>
                     <ul className="list-disc list-inside space-y-1">
-                        <li><strong>Equilátero:</strong> ¡Todos iguales! 3 lados de la misma medida.</li>
-                        <li><strong>Isósceles:</strong> ¡Dos iguales! Tiene un par de lados gemelos.</li>
-                        <li><strong>Escaleno:</strong> ¡Todos distintos! Ningún lado mide igual que otro.</li>
+                        <li><strong>Equilátero:</strong> ¡Re equilibrado! Lados todos igualitos.</li>
+                        <li><strong>Isósceles:</strong> Solo tiene dos lados gemelos.</li>
+                        <li><strong>Escaleno:</strong> Un lío total, ¡todos los lados distintos!</li>
                     </ul>
                 </div>
             );
+        case TOPICS.FRACTIONS:
+            return (
+                <div className="text-left text-sm space-y-2">
+                    <p><strong>Sumar fracciones es una papa:</strong></p>
+                    <p>Si el de abajo (denominador) es igual, se queda como está. ¡Ni se te ocurra sumarlo! Solo sumá o restá los de arriba (numeradores).</p>
+                </div>
+            );
         default:
-            return '¡La práctica hace al maestro!';
+            return '¡Dale que vos podés, sos un crack!';
     }
 };
 
 export const getAlexHint = (problem, wrongAnswer) => {
-    if (!problem) return 'Intentalo de nuevo.';
+    if (!problem) return '¡Dale de nuevo, che!';
+
+    const successPhrases = ["¡Vaaaaamoooo! ¡Sos un crack!", "¡Re bien! ¡La tenés clara!", "¡De diez, sabelo!", "¡Impresionante, che!"];
+    const retryPhrases = ["¡Casi, casi!", "¡Por un pelito!", "¡Epa! Revisá ese paso.", "¡Che, fijate bien!"];
 
     if (problem.type === TOPICS.MULTIPLICATION) {
         const { num1, num2 } = problem.details;
         const unit = num2 % 10;
-        const tens = Math.floor(num2 / 10);
         if (String(wrongAnswer).slice(-1) !== String(problem.answer).slice(-1)) {
-            return `Revisá la multiplicación por la unidad (${problem.details.num1} x ${unit}).`;
+            return `Che, fijate la cuenta de las unidades (${num1} x ${unit}). ¡Ahí hubo un pifie!`;
         }
-        return `¡Casi! Revisá la suma final o la multiplicación por las decenas (${problem.details.num1} x ${tens}).`;
+        return `¡Casi! Capaz te olvidaste de sumar lo que "te llevabas" o de dejar el espacio en la segunda fila.`;
     }
 
     if (problem.type === TOPICS.DIVISION) {
-        if (wrongAnswer > problem.answer) return '¡Te pasaste! Probá con un número más chico.';
-        return '¡Te quedaste corto! Probá con un número más grande.';
+        if (wrongAnswer > problem.answer) return '¡Te pasaste de largo! Probá con un número más chico.';
+        return '¡Te quedaste corto! Dale un poquito más.';
     }
 
     if (problem.type === TOPICS.PROPERTIES) {
-        if (problem.answer === 'Conmutativa') return 'Observá que solo cambiaron el orden.';
-        if (problem.answer === 'Asociativa') return 'Fijate en los paréntesis, agrupan distinto.';
-        if (problem.answer === 'Distributiva') return 'Mirá cómo el número de afuera multiplica a los de adentro.';
+        return 'Fijate bien qué pasó: ¿se movieron de lugar o aparecieron paréntesis?';
     }
 
     if (problem.type === TOPICS.TRIANGLES) {
@@ -230,5 +269,9 @@ export const getAlexHint = (problem, wrongAnswer) => {
         if (problem.answer === 'Escaleno') return 'Fijate que no hay ningún lado repetido.';
     }
 
-    return '¡Estuviste cerca! Volvé a calcular con cuidado.';
+    if (problem.type === TOPICS.FRACTIONS) {
+        return problem.hint;
+    }
+
+    return retryPhrases[getRandomInt(0, retryPhrases.length - 1)];
 };
