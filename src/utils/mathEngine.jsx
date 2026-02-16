@@ -2,6 +2,7 @@ export const TOPICS = {
     MULTIPLICATION: 'multiplication',
     DIVISION: 'division',
     PROPERTIES: 'properties',
+    TRIANGLES: 'triangles',
 };
 
 import React from 'react';
@@ -75,6 +76,77 @@ export const generateProblem = (topic, config) => {
                 isMultipleChoice: true
             };
         }
+        case TOPICS.TRIANGLES: {
+            const types = ['Equilátero', 'Isósceles', 'Escaleno'];
+            const type = types[getRandomInt(0, 2)];
+            let sides = [];
+
+            if (type === 'Equilátero') {
+                const s = getRandomInt(5, 15);
+                sides = [s, s, s];
+            } else if (type === 'Isósceles') {
+                const base = getRandomInt(4, 12);
+                const equalSide = getRandomInt(base + 1, base * 2); // Ensure triangle inequality
+                sides = [equalSide, equalSide, base];
+            } else {
+                // Scalene
+                let a, b, c;
+                do {
+                    a = getRandomInt(5, 15);
+                    b = getRandomInt(5, 15);
+                    c = getRandomInt(5, 15);
+                } while (a === b || b === c || a === c || a + b <= c || a + c <= b || b + c <= a); // Ensure distinct and valid
+                sides = [a, b, c];
+            }
+
+            // Shuffle sides for display? Or keep them sorted? Usually diagrams show relative lengths.
+            // Let's create a visual representation (SVG)
+            const maxSide = Math.max(...sides);
+            const scale = 150 / maxSide; // Scale to fit in 200x200 box
+            // Coordinates: Base on x-axis. 
+            // A=(0,0), B=(side3, 0). C found by intersection of circle(A, s1) and circle(B, s2).
+            // Let side3 be the base. s1 = sides[0], s2 = sides[1], s3 = sides[2]
+
+            // Simple visualization: Just numbers and a generic triangle or specific shape?
+            // Let's try to draw it roughly.
+            // Cosine rule to find coordinates of C (x, y)
+            // x = (s3^2 + s1^2 - s2^2) / (2 * s3)
+            // y = sqrt(s1^2 - x^2)
+
+            const s1 = sides[0];
+            const s2 = sides[1];
+            const s3 = sides[2]; // Base
+
+            const cx = (s3 * s3 + s1 * s1 - s2 * s2) / (2 * s3);
+            const cy = Math.sqrt(Math.abs(s1 * s1 - cx * cx));
+
+            const p1 = { x: 20, y: 180 }; // Bottom-left
+            const p2 = { x: 20 + s3 * scale, y: 180 }; // Bottom-right
+            const p3 = { x: 20 + cx * scale, y: 180 - cy * scale }; // Top
+
+            const svgContent = (
+                <svg width="250" height="200" viewBox="0 0 250 200" className="mx-auto my-4 overflow-visible">
+                    <polygon points={`${p1.x},${p1.y} ${p2.x},${p2.y} ${p3.x},${p3.y}`} fill="#e0f2fe" stroke="#3b82f6" strokeWidth="4" strokeLinejoin="round" />
+                    {/* Labels */}
+                    <text x={(p1.x + p3.x) / 2 - 15} y={(p1.y + p3.y) / 2} fill="#1e40af" fontWeight="bold">{s1}</text>
+                    <text x={(p2.x + p3.x) / 2 + 5} y={(p2.y + p3.y) / 2} fill="#1e40af" fontWeight="bold">{s2}</text>
+                    <text x={(p1.x + p2.x) / 2} y={p1.y + 20} fill="#1e40af" fontWeight="bold" textAnchor="middle">{s3}</text>
+                </svg>
+            );
+
+            return {
+                type: topic,
+                question: (
+                    <div>
+                        <div className="text-xl mb-2">¿Qué tipo de triángulo es según sus lados?</div>
+                        {svgContent}
+                    </div>
+                ),
+                answer: type,
+                options: types.sort(() => Math.random() - 0.5),
+                isMultipleChoice: true
+            };
+        }
         default:
             return null;
     }
@@ -112,6 +184,17 @@ export const getAlexTip = (topic) => {
                     <p><strong>Distributiva:</strong> "El número de afuera se reparte con los de adentro". <br /><span className="text-xs text-slate-500">Ej: 2x(3+4) es igual a hacer 2x3 y sumarle 2x4.</span></p>
                 </div>
             );
+        case TOPICS.TRIANGLES:
+            return (
+                <div className="text-left text-sm space-y-2">
+                    <p><strong>Tipos de Triángulos:</strong></p>
+                    <ul className="list-disc list-inside space-y-1">
+                        <li><strong>Equilátero:</strong> ¡Todos iguales! 3 lados de la misma medida.</li>
+                        <li><strong>Isósceles:</strong> ¡Dos iguales! Tiene un par de lados gemelos.</li>
+                        <li><strong>Escaleno:</strong> ¡Todos distintos! Ningún lado mide igual que otro.</li>
+                    </ul>
+                </div>
+            );
         default:
             return '¡La práctica hace al maestro!';
     }
@@ -124,8 +207,6 @@ export const getAlexHint = (problem, wrongAnswer) => {
         const { num1, num2 } = problem.details;
         const unit = num2 % 10;
         const tens = Math.floor(num2 / 10);
-        // Check if they forgot the zero in the tens line? Hard to guess from just the final answer.
-        // We can check the last digit.
         if (String(wrongAnswer).slice(-1) !== String(problem.answer).slice(-1)) {
             return `Revisá la multiplicación por la unidad (${problem.details.num1} x ${unit}).`;
         }
@@ -141,6 +222,12 @@ export const getAlexHint = (problem, wrongAnswer) => {
         if (problem.answer === 'Conmutativa') return 'Observá que solo cambiaron el orden.';
         if (problem.answer === 'Asociativa') return 'Fijate en los paréntesis, agrupan distinto.';
         if (problem.answer === 'Distributiva') return 'Mirá cómo el número de afuera multiplica a los de adentro.';
+    }
+
+    if (problem.type === TOPICS.TRIANGLES) {
+        if (problem.answer === 'Equilátero') return '¡Mirá bien los números! ¿Son todos iguales?';
+        if (problem.answer === 'Isósceles') return 'Buscá dos lados que midan lo mismo.';
+        if (problem.answer === 'Escaleno') return 'Fijate que no hay ningún lado repetido.';
     }
 
     return '¡Estuviste cerca! Volvé a calcular con cuidado.';

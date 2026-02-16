@@ -1,12 +1,13 @@
 import React from 'react';
 import { TOPICS } from '../utils/mathEngine';
-import { Calculator, Divide, BookOpen } from 'lucide-react';
+import { Calculator, Divide, BookOpen, Triangle } from 'lucide-react';
 
 const TopicSelector = ({ currentTopic, onSelectTopic, config, onUpdateConfig }) => {
     const topics = [
         { id: TOPICS.MULTIPLICATION, label: 'Multiplicación', icon: Calculator },
         { id: TOPICS.DIVISION, label: 'División', icon: Divide },
         { id: TOPICS.PROPERTIES, label: 'Propiedades', icon: BookOpen },
+        { id: TOPICS.TRIANGLES, label: 'Triángulos', icon: Triangle },
     ];
 
     const handleConfigChange = (type, key, value) => {
